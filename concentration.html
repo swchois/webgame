@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>카드 짝 생성하기</title>
+    <style>
+      .card{
+        display:inline-block;
+        margin-right:20px;
+        margin-bottom:20px;
+        width:80px;
+        height:100px;
+        perspective: 140px; 
+      }
+      .card-inner {
+        position:relative;
+        width:100%;
+        height:100%;
+        text-align:center;
+        transition: transform 0.8s;
+        transform-style:preserve-3d;
+      }
+      .card.flipped .card-inner{
+        transform: rotateY(180deg);
+      }
+      .card-back{
+        background: navy;
+      }
+      .card-front, .card-back{
+        position:absolute;
+        width:100%;
+        height: 100%;
+        border:1px solid black;
+        backface-visibility: hidden;
+      }
+      .card-front{
+        transform: rotateY(180deg);
+      }
+    </style>
+    <body>
+      <div id = "wrapper"></div>
+      <script>
+        const $wrapper = document.querySelector('#wrapper');
+        const total=12;
+        const colors=['red','orange','yellow','green','white','pink'];
+        let colorCopy = colors.concat(colors); //카드색 복사
+        let shuffled = []; //섞은 카드 배열
+        let clicked=[]; //클릭한 카드 배열
+        let completed =[];
+        let clickable = false;
+
+        function onClickCard(){
+          if(!clickable || completed.includes(this)||clicked[0]===this){
+            return;
+          }
+          this.classList.toggle('flipped');
+          clicked.push(this);
+          if(clicked.length!==2){
+            return;
+          }
+          const front1Color = clicked[0].querySelector('.card-front').style.backgroundColor;
+          const front2Color = clicked[1].querySelector('.card-front').style.backgroundColor;
+          if(front1Color===front2Color){
+            completed.push(clicked[0]);
+            completed.push(clicked[1]);
+            clicked= [];
+            if(completed.length !==total){
+              return;
+            }
+            setTimeout(()=>{
+              alert('축하합니다!');
+              resetGame();
+            },1000);
+            return;
+          }
+          //두 카드의 색이 다르면
+          setTimeout(()=>{
+            clicked[0].classList.remove('flipped');
+            clicked[1].classList.remove('flipped');
+            clicked = [];
+          },500);
+        }
+        function resetGame(){
+          $wrapper.innerHTML ='';
+          colorCopy = colors.concat(colors);
+          shuffled =[];
+          completed=[];
+          clickable=false;
+          startGame();
+        }
+        function shuffle(){
+          for(;colorCopy.length>0;){
+            const randomIndex = Math.floor(Math.random()*colorCopy.length);
+            shuffled = shuffled.concat(colorCopy.splice(randomIndex,1));
+          }
+        }
+        function createCard(i){
+          const card = document.createElement('div');
+          card.className='card';
+          const cardInner =  document.createElement('div');
+          cardInner.className ='card-inner';
+          const cardBack = document.createElement('div');
+          cardBack.className = 'card-back';
+          const cardFront = document.createElement('div');
+          cardFront.className = 'card-front';
+          cardFront.style.backgroundColor=shuffled[i];
+          cardInner.appendChild(cardBack);
+          cardInner.appendChild(cardFront);
+          card.appendChild(cardInner);
+          return card;
+        }
+        function startGame(){
+          shuffle();
+          for(let i =0;i<total;i+=1){
+            const card = createCard(i);
+            card.addEventListener('click', onClickCard); //추가
+            $wrapper.appendChild(card);
+          }
+          document.querySelectorAll('.card').forEach((card,index)=>{
+            setTimeout(()=>{
+              card.classList.add('flipped');
+            },1000+100*index);
+          });
+            setTimeout(()=>{
+              document.querySelectorAll('.card').forEach((card)=>{
+                card.classList.remove('flipped');
+              });
+              clickable=true;
+            },5000);
+        }
+        startGame();
+      </script>
+    </body>
+  </head>
+</html>
